@@ -32,7 +32,7 @@ I found these websites useful in developing this software:
 
 * [Python Socket Programming Tutorial](https://realpython.com/python-sockets/)
 * [Python 3 Standard Library Documentation](https://docs.python.org/3/library/socket.html)
-* [GeeksforGeeks - JSON Serialization in Python](https://www.geeksforgeeks.org/json-serialization-and-deserialization-in-python/)
+* [GeeksforGeeks - JSON Serialization in Python](https://www.geeksforgeeks.org/python/serializing-json-data-in-python/)
 
 ## Future Work
 

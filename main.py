@@ -36,7 +36,6 @@ def receive_json_message(sock):
     return json.loads(raw_data.decode('utf-8'))
 
 def play_game(connection, is_my_turn):
-    # Setup game tracking state for this specific match
     my_grid, my_treasure = create_grid()
     tracking_grid = [[" " for _ in range(3)] for _ in range(3)]
     game_over = False
@@ -119,7 +118,6 @@ def play_game(connection, is_my_turn):
     except Exception as e:
         print(f"\nAn error occurred during network transmission: {e}")
     finally:
-        # Make sure this specific client connection socket closes, but leave the main server running
         connection.close()
 
 def main():
