@@ -35,34 +35,8 @@ def receive_json_message(sock):
         return None
     return json.loads(raw_data.decode('utf-8'))
 
-def main():
-    print("Welcome to Peer-to-Peer Battleship!")
-    role = input("Do you want to (H)ost the game or (C)onnect to a peer? ").strip().lower()
-    
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = 5555
-    
-    if role == 'h':
-        my_socket.bind(('127.0.0.1', port))
-        my_socket.listen(1)
-        print(f"Listening for a peer connection on port {port}...")
-        connection, address = my_socket.accept()
-        print(f"Connected to peer at {address}")
-        is_my_turn = True # Host goes first
-    elif role == 'c':
-        print(f"Connecting to peer on port {port}...")
-        try:
-            my_socket.connect(('127.0.0.1', port))
-            connection = my_socket
-            print("Successfully connected to the host!")
-            is_my_turn = False
-        except ConnectionRefusedError:
-            print("Could not connect. Make sure the host terminal is running first.")
-            return
-    else:
-        print("Invalid choice. Please restart and enter H or C.")
-        return
-
+def play_game(connection, is_my_turn):
+    # Setup game tracking state for this specific match
     my_grid, my_treasure = create_grid()
     tracking_grid = [[" " for _ in range(3)] for _ in range(3)]
     game_over = False
@@ -145,9 +119,50 @@ def main():
     except Exception as e:
         print(f"\nAn error occurred during network transmission: {e}")
     finally:
+        # Make sure this specific client connection socket closes, but leave the main server running
         connection.close()
+
+def main():
+    print("Welcome to Peer-to-Peer Battleship!")
+    role = input("Do you want to (H)ost the game or (C)onnect to a peer? ").strip().lower()
+    
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    port = 5555
+    
+    if role == 'h':
+        my_socket.bind(('127.0.0.1', port))
+        my_socket.listen(1)
+        
+        while True: 
+            print(f"\nListening for a peer connection on port {port}...")
+            try:
+                connection, address = my_socket.accept()
+                print(f"Connected to peer at {address}")
+                
+                play_game(connection, is_my_turn=True)
+                
+                print("Match concluded. Ready for a new opponent.")
+            except KeyboardInterrupt:
+                print("\nShutting down host server.")
+                break
+            except Exception as e:
+                print(f"Error handling connection: {e}")
+                
         my_socket.close()
-        print("\nNetwork sockets closed. Game terminated cleanly.")
+
+    elif role == 'c':
+        print(f"Connecting to peer on port {port}...")
+        try:
+            my_socket.connect(('127.0.0.1', port))
+            print("Successfully connected to the host!")
+            
+            play_game(my_socket, is_my_turn=False)
+            
+        except ConnectionRefusedError:
+            print("Could not connect. Make sure the host terminal is running first.")
+        finally:
+            my_socket.close()
 
 if __name__ == "__main__":
     main()
